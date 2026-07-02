@@ -8,6 +8,7 @@ for each signal, then applied to real candidates.
 """
 
 import numpy as np
+import pandas as pd
 from typing import Dict, Any
 from dataclasses import dataclass
 
@@ -46,12 +47,14 @@ class BehavioralScorer:
         "search_appearance_30d",
         "avg_response_time_hours",
         "github_activity_score",
-        "verified",
+        "verified_email",
+        "verified_phone",
+        "verified_linkedin",
         "willing_to_relocate",
         "expected_salary_min",
         "expected_salary_max",
         "years_since_last_job_change",
-        "skill_assessment_avg",
+        "skill_assessment_avg"
     ]
 
     def __init__(self):
@@ -215,12 +218,12 @@ class BehavioralScorer:
         features = self._extract_features(candidate).reshape(1, -1)
 
         if self.trained and self.model is not None:
-            # Use predict with num_iteration to avoid feature name issues
+            # Convert to pandas DataFrame with feature names to avoid warnings
+            features_df = pd.DataFrame(features, columns=self.FEATURE_NAMES)
             try:
-                score = self.model.predict(features, num_iteration=self.model.best_iteration_)[0]
+                score = self.model.predict(features_df, num_iteration=self.model.best_iteration_)[0]
             except Exception:
-                # Fallback if best_iteration_ doesn't exist
-                score = self.model.predict(features)[0]
+                score = self.model.predict(features_df)[0]
         else:
             score = np.dot(features[0], self._simple_weights)
 

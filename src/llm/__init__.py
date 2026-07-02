@@ -9,7 +9,26 @@ This module provides:
 - Consistent interface across providers
 """
 
-from .client import GroqClient, OpenAIClient, get_llm_client
 from .prompt_templates import PROMPT_TEMPLATES
 
-__all__ = ["GroqClient", "OpenAIClient", "get_llm_client", "PROMPT_TEMPLATES"]
+
+def _get_groq_client():
+    """Lazy import of GroqClient to avoid ImportError if groq not installed."""
+    try:
+        from .client import GroqClient
+        return GroqClient
+    except ImportError:
+        return None
+
+
+def _get_openai_client():
+    """Lazy import of OpenAIClient."""
+    from .client import OpenAIClient
+    return OpenAIClient
+
+
+# Define classes conditionally based on available dependencies
+GroqClient = _get_groq_client()
+OpenAIClient = _get_openai_client()
+
+__all__ = ["GroqClient", "OpenAIClient", "PROMPT_TEMPLATES"]

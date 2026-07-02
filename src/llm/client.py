@@ -38,23 +38,14 @@ class GroqClient:
     def __init__(self, model: str = "llama-3.3-70b-versatile"):
         self.model = model
         self._client = None
-        self._groq_available = self._check_groq_available()
 
-    def _check_groq_available(self) -> bool:
-        """Check if groq module is available."""
-        try:
-            from groq import Groq
-            return True
-        except ImportError:
-            return False
+
+    
 
     def _get_client(self):
+        from groq import Groq
         if self._client is None:
-            if not self._groq_available:
-                raise ImportError(
-                    "groq module not installed. Install with: pip install groq "
-                    "Or use --provider openai instead"
-                )
+
             self._client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
         return self._client
 
