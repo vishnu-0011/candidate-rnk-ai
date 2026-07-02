@@ -1,42 +1,36 @@
 """
-Job Description Parser - LLM-Powered Semantic Understanding.
+Job Description Parser for Redrobe AI Candidate Ranking System.
 
-Uses Groq (Mistral) for fast parsing and OpenAI (GPT-4) for nuanced
-understanding of what the role truly requires beyond the keywords.
+Uses LLMs to semantically understand job descriptions, extracting:
+- Core requirements vs nice-to-haves
+- Red flags and disqualifiers
+- Cultural signals and vibe check items
+- Experience level interpretation
 
-Key Insight: Job descriptions are often misleading. "5-9 years" doesn't
-mean 5-9 years - it means "senior-level judgment with hands-on coding".
+Key Insight: "5-9 years" doesn't mean literal 5-9 years - it means
+"senior-level judgment with hands-on coding ability".
 """
 
 import json
-import re
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 from .llm import GroqClient, OpenAIClient
 from .llm.prompt_templates import PROMPT_TEMPLATES
 
 
-class LLMJobParser:
+class JobDescriptionParser:
     """
     Parse job descriptions using LLMs for semantic understanding.
-
-    The key difference from traditional parsers:
-    - Extracts requirements (what must-haves really are)
-    - Identifies red flags (consulting, pure research, etc.)
-    - Detects cultural signals (async-first, product mindset)
-    - Interprets experience levels contextually
     """
 
-    def __init__(self, fast_provider: str = "groq", quality_provider: str = "openai"):
+    def __init__(self, provider: str = "groq"):
         """
-        Initialize parser with LLM clients.
+        Initialize parser with LLM client.
 
         Args:
-            fast_provider: 'groq' for fast parsing
-            quality_provider: 'openai' for nuanced understanding
+            provider: 'groq' for fast parsing, 'openai' for quality
         """
-        self.fast_client = GroqClient()
-        self.quality_client = OpenAIClient()
+        self.client = GroqClient() if provider == "groq" else OpenAIClient()
 
     def parse(self, job_description: str) -> Dict[str, Any]:
         """
@@ -52,16 +46,15 @@ class LLMJobParser:
             job_description=job_description
         )
 
-        # Use Groq for fast initial parsing
-        response = self.fast_client.generate(prompt, response_format="json")
+        response = self.client.generate(prompt, response_format="json")
 
         return json.loads(response.text)
 
     def extract_requirements(self, job_description: str) -> Dict[str, Any]:
         """
-        Alternative: Extract just the key requirements for scoring.
+        Extract streamlined requirements for scoring.
 
-        Returns a streamlined dict with only what the scorer needs.
+        Returns only what the scorer needs to work with.
         """
         parsed = self.parse(job_description)
 
@@ -76,65 +69,18 @@ class LLMJobParser:
             "red_flags": parsed["red_flags"],
             "cultural_signals": parsed["cultural_signals"],
             "role_level": parsed["role_level"],
-            "raw_parsing": parsed,  # Keep full parsing for debugging
         }
 
 
-class HybridJobParser:
-    """
-    Hybrid approach: LLM for structure + regex for verification.
-
-    Uses LLM to extract structure, then validates/extracts with regex
-    patterns for confidence scoring.
-    """
-
-    def __init__(self):
-        self.llm_parser = LLMJobParser()
-
-        # Fallback regex patterns for validation
-        self.experience_pattern = r"(\d+)[-\s]?\+?\s*[-\s]\s*(\d+)[-\s]?\+?\s*years?"
-        self.location_pattern = r"(?:pune|noida|hyderabad|mumbai|delhi)[^\n]*"
-
-    def parse(self, job_description: str) -> Dict[str, Any]:
-        """
-        Parse with LLM, fallback to regex for validation.
-        """
-        # Primary: LLM parsing
-        llm_result = self.llm_parser.parse(job_description)
-
-        # Secondary: Regex validation/enrichment
-        experience_match = re.search(self.experience_pattern, job_description.lower())
-        if experience_match and llm_result["experience_years"]["min"] == 5:
-            # LLM might have defaulted, use regex if different
-            llm_result["experience_years"] = {
-                "min": int(experience_match.group(1)),
-                "max": int(experience_match.group(2)),
-            }
-
-        return llm_result
-
-
-# Backward compatibility
-def parse_job_description(job_description: str) -> Dict[str, Any]:
-    """
-    Convenience function for parsing job descriptions.
-
-    Args:
-        job_description: Raw job description text
-
-    Returns:
-        Structured requirements dictionary
-    """
-    parser = LLMJobParser()
-    return parser.parse(job_description)
-
-
-# For docx files
 def load_job_description(file_path: str) -> str:
     """
     Load job description from file.
 
-    Supports .txt and .docx files.
+    Args:
+        file_path: Path to .txt or .docx file
+
+    Returns:
+        Job description text
     """
     if file_path.endswith(".txt"):
         with open(file_path, "r", encoding="utf-8") as f:
@@ -145,32 +91,3 @@ def load_job_description(file_path: str) -> str:
         return "\n".join(p.text for p in doc.paragraphs if p.text.strip())
     else:
         raise ValueError(f"Unsupported file format: {file_path}")
-
-
-if __name__ == "__main__":
-    # Example usage
-    sample_job = """
-    Job Description: Senior AI Engineer — Founding Team
-    Company: Redrob AI (Series A AI-native talent intelligence platform)
-    Location: Pune/Noida, India (Hybrid — flexible cadence)
-    Experience Required: 5–9 years
-
-    Required Skills:
-    - Production experience with embeddings-based retrieval systems
-    - Experience with vector databases (Pinecone, Weaviate, Qdrant, etc.)
-    - Strong Python skills
-    - Experience designing evaluation frameworks (NDCG, MRR, MAP, A/B testing)
-
-    Red Flags:
-    - Pure research without production deployment
-    - AI experience only from recent LangChain projects
-    - Consulting background (TCS, Infosys, Wipro, etc.)
-    """
-
-    parser = LLMJobParser()
-    result = parser.parse(sample_job)
-
-    print("Parsed Job Requirements:")
-    print(f"Role: {result.get('role_title', 'N/A')}")
-    print(f"Experience: {result.get('experience_years', 'N/A')}")
-    print(f"Core Skills: {result.get('core_skills', [])}")

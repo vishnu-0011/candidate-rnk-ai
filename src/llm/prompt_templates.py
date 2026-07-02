@@ -1,23 +1,19 @@
 """
-Prompt Templates for LLM Integration.
+Prompt Templates for Redrobe AI Candidate Ranking System.
 
-Defines structured prompts for:
+Defines structured prompts with few-shot examples for:
 - Job description parsing
 - Candidate evaluation
 - Explanations generation
 - Re-ranking
-
-Uses few-shot examples to guide the LLM toward high-quality outputs.
+- Behavioral signal analysis
 """
 
-from typing import Dict
+PROMPT_TEMPLATES = {
+    # Job Parsing Prompt
+    "parse_job_description": """You are an expert recruiter and talent analyst. Parse the job description to extract structured information.
 
-
-PROMPT_TEMPLATES: Dict[str, str] = {
-    # Job parsing templates
-    "parse_job_description": """You are an expert recruiter and talent analyst. Parse the following job description to extract structured information.
-
-Output as JSON with this structure:
+Output as JSON with this exact structure:
 {
     "role_title": "string",
     "experience_years": {"min": int, "max": int},
@@ -34,46 +30,10 @@ Output as JSON with this structure:
 Job Description:
 {job_description}
 
-IMPORTANT: Extract only what's stated or strongly implied. Don't hallucinate requirements.""",
-
-    "parse_job_description_fewshot_input": """
-Job Description:
-Senior AI Engineer — Founding Team
-Company: Redrob AI
-Location: Pune/Noida, India (Hybrid — flexible cadence)
-Experience Required: 5–9 years
-
-Required Skills:
-- Production experience with embeddings-based retrieval systems (sentence-transformers, OpenAI embeddings, BGE, E5)
-- Production experience with vector databases (Pinecone, Weaviate, Qdrant, Milvus)
-- Strong Python
-- Hands-on experience designing evaluation frameworks (NDCG, MRR, MAP, A/B testing)
-
-Red Flags:
-- Pure research without production deployment
-- AI experience only from recent (under 12 months) LangChain projects
-- Senior engineer who hasn't written production code in 18 months
-- Consulting firm background (TCS,Infosys,Wipro,Accenture,Cognizant,Capgemini)
-
-Job Description:
+IMPORTANT: Extract only what's stated or strongly implied. Don't hallucinate requirements.
 """,
 
-    "parse_job_description_fewshot_output": """
-{
-    "role_title": "Senior AI Engineer",
-    "experience_years": {"min": 5, "max": 9},
-    "location": "Pune/Noida, India",
-    "work_mode": "hybrid",
-    "core_skills": ["Embeddings", "Vector Databases", "Python", "Evaluation Frameworks"],
-    "preferred_skills": ["RAG", "Retrieval", "Ranking", "LLMs"],
-    "must_haves": ["Production embeddings experience", "Vector database experience", "Strong Python", "Evaluation framework design"],
-    "red_flags": ["Pure research without production", "Recent LLM-only experience", "No production code in 18 months", "Consulting background"],
-    "cultural_signals": ["Async-first communication", "Product-engineering mindset", "Comfort with ambiguity"],
-    "role_level": "senior"
-}
-""",
-
-    # Candidate evaluation templates
+    # Candidate Evaluation Prompt
     "evaluate_candidate": """Evaluate this candidate for the {role_title} role at {company}.
 
 Job Requirements:
@@ -104,7 +64,7 @@ Output as JSON:
 }
 """,
 
-    # Explanation generation
+    # Explanation Generation Prompt
     "generate_explanation": """Generate a human-readable explanation for why candidate {candidate_id} is ranked {rank} for this {role_title} role.
 
 Score: {score}
@@ -131,7 +91,7 @@ Output as JSON:
 }
 """,
 
-    # Re-ranking
+    # Re-ranking Prompt
     "rerank_candidates": """Re-rank these candidates for a {role_title} role based on deeper understanding.
 
 Initial scores were computed using keyword matching and basic signals. Now apply deeper analysis:
@@ -155,44 +115,7 @@ Output as JSON with re-ranked candidates:
 }
 """,
 
-    # Synthetic data generation
-    "generate_synthetic_job": """Generate a realistic job description for a {role_type} role.
-
-Requirements:
-- Company: {company_type}
-- Location: {location}
-- Experience: {experience_range} years
-- Must include: {required_skill}
-- Nice to have: {preferred_skill}
-
-Return as JSON:
-{
-    "company": "string",
-    "role_title": "string",
-    "description": "string",
-    "requirements": ["string"],
-    "nice_to_haves": ["string"],
-    "red_flags": ["string"],
-    "cultural_signals": ["string"]
-}
-""",
-
-    "generate_synthetic_candidate": """Generate a candidate profile for a {role_type} role.
-
-Job Requirements:
-{job_requirements}
-
-Generate a {fit_type} candidate (good_fit or bad_fit):
-- Name: {name}
-- Experience: {years} years
-- Skills: relevant to the role
-- Behavioral signals: consistent with their profile
-- Career history: realistic progression
-
-Return as JSON matching the candidate schema.
-""",
-
-    # Behavioral signal analysis
+    # Behavioral Signal Analysis Prompt
     "analyze_behavioral_signals": """Analyze these behavioral signals and identify any patterns or concerns.
 
 Behavioral Signals:
