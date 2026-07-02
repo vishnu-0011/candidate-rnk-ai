@@ -6,8 +6,22 @@ Unified interface for Groq (Mistral) and OpenAI (GPT-4) providers.
 
 import os
 import json
+from pathlib import Path
 from typing import Any, Dict, Optional
 from dataclasses import dataclass
+
+# Load environment variables from .env file
+# Try multiple paths to find .env file
+env_paths = [
+    Path(__file__).parent.parent.parent / ".env",
+    Path.cwd() / ".env",
+    Path(__file__).parent.parent / ".env",
+]
+for env_path in env_paths:
+    if env_path.exists():
+        from dotenv import load_dotenv
+        load_dotenv(env_path)
+        break
 
 
 @dataclass
@@ -19,15 +33,28 @@ class LLMResponse:
 
 
 class GroqClient:
-    """Groq API client using Mistral for fast inference (50-100ms latency)."""
+    """Groq API client using LLM for fast inference."""
 
-    def __init__(self, model: str = "mistral-7b-instruct-v0.3"):
+    def __init__(self, model: str = "llama-3.3-70b-versatile"):
         self.model = model
         self._client = None
+        self._groq_available = self._check_groq_available()
+
+    def _check_groq_available(self) -> bool:
+        """Check if groq module is available."""
+        try:
+            from groq import Groq
+            return True
+        except ImportError:
+            return False
 
     def _get_client(self):
         if self._client is None:
-            from groq import Groq
+            if not self._groq_available:
+                raise ImportError(
+                    "groq module not installed. Install with: pip install groq "
+                    "Or use --provider openai instead"
+                )
             self._client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
         return self._client
 

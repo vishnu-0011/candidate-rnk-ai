@@ -18,7 +18,6 @@ import numpy as np
 
 from .embeddings import BGEEncoder, HybridSearcher
 from .behavioral import BehavioralScorer, generate_synthetic_behavioral_data
-from .job_parser import LLMJobParser
 
 
 class MultiDimensionalScorer:
@@ -128,7 +127,7 @@ class MultiDimensionalScorer:
         job_exp = self.job_reqs.get("experience_years", (5, 9))
         min_exp, max_exp = job_exp
 
-        current_exp = profile.get("years_of_experience", 0)
+        current_exp = float(profile.get("years_of_experience", 0))
 
         # Experience score (0-1)
         if current_exp < min_exp:

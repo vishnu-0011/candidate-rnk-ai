@@ -7,6 +7,8 @@ Defines structured prompts with few-shot examples for:
 - Explanations generation
 - Re-ranking
 - Behavioral signal analysis
+
+Note: JSON braces are escaped as {{ and }} to avoid conflicts with .format()
 """
 
 PROMPT_TEMPLATES = {
@@ -14,9 +16,9 @@ PROMPT_TEMPLATES = {
     "parse_job_description": """You are an expert recruiter and talent analyst. Parse the job description to extract structured information.
 
 Output as JSON with this exact structure:
-{
+{{
     "role_title": "string",
-    "experience_years": {"min": int, "max": int},
+    "experience_years": {{"min": int, "max": int}},
     "location": "string",
     "work_mode": "remote|hybrid|onsite|flexible",
     "core_skills": ["skill1", "skill2"],
@@ -25,7 +27,7 @@ Output as JSON with this exact structure:
     "red_flags": ["disqualifier1", "disqualifier2"],
     "cultural_signals": ["signal1", "signal2"],
     "role_level": "senior|staff|principal"
-}
+}}
 
 Job Description:
 {job_description}
@@ -52,7 +54,7 @@ Rate on these dimensions (0-1 scale):
 4. Cultural Alignment: Does this match our async-first, product-driven culture?
 
 Output as JSON:
-{
+{{
     "skill_match": 0.8,
     "experience_relevance": 0.75,
     "behavioral_fit": 0.9,
@@ -61,7 +63,7 @@ Output as JSON:
     "key_strengths": ["strength1", "strength2"],
     "concerns": ["concern1"],
     "red_flag_check": ["verified"]
-}
+}}
 """,
 
     # Explanation Generation Prompt
@@ -86,9 +88,9 @@ The explanation should:
 5. Sound like a real recruiter wrote it
 
 Output as JSON:
-{
+{{
     "explanation": "string"
-}
+}}
 """,
 
     # Re-ranking Prompt
@@ -107,12 +109,12 @@ For each candidate, consider:
 5. True availability (notice period, location)
 
 Output as JSON with re-ranked candidates:
-{
+{{
     "ranked_candidates": [
-        {"candidate_id": "CAND_0001234", "new_rank": 1, "score": 0.95, "reason": "explanation"},
+        {{"candidate_id": "CAND_0001234", "new_rank": 1, "score": 0.95, "reason": "explanation"}},
         ...
     ]
-}
+}}
 """,
 
     # Behavioral Signal Analysis Prompt
@@ -128,12 +130,12 @@ Identify:
 4. Market activity level
 
 Output as JSON:
-{
+{{
     "engagement_level": "high|medium|low",
     "reliability_score": 0.8,
     "concerns": ["concern1", "concern2"],
     "market_activity": "active|passive|inactive",
     "overall_assessment": "string"
-}
+}}
 """,
 }

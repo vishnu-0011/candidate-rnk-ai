@@ -24,11 +24,12 @@ from config import LLM_CONFIG, PATH_CONFIG
 
 def print_banner():
     """Print the project banner."""
+    # Use simple ASCII banner to avoid encoding issues on Windows
     banner = """
-    ╔═══════════════════════════════════════════════════════════════╗
-    ║        Redrobe AI Candidate Ranking System v1.0               ║
-    ║        Semantic Understanding + Behavioral Scoring            ║
-    ╚═══════════════════════════════════════════════════════════════╝
+    ================================================================
+    |        Redrobe AI Candidate Ranking System v1.0              |
+    |        Semantic Understanding + Behavioral Scoring           |
+    ================================================================
     """
     print(banner)
 
@@ -44,10 +45,10 @@ def print_job_summary(parsed_job: dict):
     print(f"Work Mode: {parsed_job.get('work_mode', 'N/A')}")
     print(f"\nCore Skills ({len(parsed_job.get('core_skills', []))}):")
     for skill in parsed_job.get('core_skills', []):
-        print(f"  • {skill}")
+        print(f"  - {skill}")
     print(f"\nRed Flags Detected ({len(parsed_job.get('red_flags', []))}):")
     for flag in parsed_job.get('red_flags', []):
-        print(f"  ⚠ {flag}")
+        print(f"  ! {flag}")
 
 
 def main():
@@ -102,7 +103,7 @@ def main():
         sys.exit(1)
 
     # Parse job description
-    print(f"\n📄 Parsing job description: {args.job_file}")
+    print(f"\n[DOC] Parsing job description: {args.job_file}")
     try:
         job_text = load_job_description(args.job_file)
     except Exception as e:
@@ -110,7 +111,7 @@ def main():
         sys.exit(1)
 
     # Initialize ranker
-    print(f"🤖 Using LLM provider: {args.provider}")
+    print(f"[BOT] Using LLM provider: {args.provider}")
     ranker = CandidateRanker(
         job_description=job_text,
         provider=args.provider
@@ -145,7 +146,7 @@ def main():
         for r in results[:5]:
             print(f"  #{r['rank']} {r['candidate_id']} - Score: {r['score']:.4f}")
 
-    print(f"\n✅ Output saved to: {args.output_file}")
+    print(f"\n[OK] Output saved to: {args.output_file}")
     print(f"   Full explanations available in the CSV file.")
 
 

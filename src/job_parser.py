@@ -60,7 +60,7 @@ class JobDescriptionParser:
 
         return {
             "role_title": parsed["role_title"],
-            "experience_years": tuple(parsed["experience_years"].values()),
+            "experience_years": (int(parsed["experience_years"]["min"]), int(parsed["experience_years"]["max"])),
             "location": parsed["location"],
             "work_mode": parsed["work_mode"],
             "core_skills": parsed["core_skills"],

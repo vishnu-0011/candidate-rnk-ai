@@ -28,6 +28,8 @@ class BehavioralScorer:
     """
 
     # Redrob signals to use as features
+    # Note: verified_email, verified_phone, linkedin_connected are combined
+    # into a single 'verified' feature for simplicity
     FEATURE_NAMES = [
         "recruiter_response_rate",
         "profile_completeness_score",
@@ -44,9 +46,7 @@ class BehavioralScorer:
         "search_appearance_30d",
         "avg_response_time_hours",
         "github_activity_score",
-        "verified_email",
-        "verified_phone",
-        "linkedin_connected",
+        "verified",
         "willing_to_relocate",
         "expected_salary_min",
         "expected_salary_max",
@@ -134,13 +134,10 @@ class BehavioralScorer:
         github = signals.get("github_activity_score", 0)
         features.append(github / 100.0 if github >= 0 else 0.2)
 
-        # Verification flags
-        verified = sum([
-            signals.get("verified_email", False),
-            signals.get("verified_phone", False),
-            signals.get("linkedin_connected", False),
-        ])
-        features.append(verified / 3.0)
+        # Verification flags (3 separate features)
+        features.append(1.0 if signals.get("verified_email", False) else 0.0)
+        features.append(1.0 if signals.get("verified_phone", False) else 0.0)
+        features.append(1.0 if signals.get("linkedin_connected", False) else 0.0)
 
         # Willing to relocate
         relocate = 1.0 if signals.get("willing_to_relocate", False) else 0.0
@@ -218,7 +215,12 @@ class BehavioralScorer:
         features = self._extract_features(candidate).reshape(1, -1)
 
         if self.trained and self.model is not None:
-            score = self.model.predict(features)[0]
+            # Use predict with num_iteration to avoid feature name issues
+            try:
+                score = self.model.predict(features, num_iteration=self.model.best_iteration_)[0]
+            except Exception:
+                # Fallback if best_iteration_ doesn't exist
+                score = self.model.predict(features)[0]
         else:
             score = np.dot(features[0], self._simple_weights)
 

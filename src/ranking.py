@@ -18,7 +18,7 @@ from pathlib import Path
 
 from .llm import GroqClient, OpenAIClient
 from .llm.prompt_templates import PROMPT_TEMPLATES
-from .job_parser import LLMJobParser, load_job_description
+from .job_parser import JobDescriptionParser, load_job_description
 from .scorer import CandidateScorer
 from .embeddings import BGEEncoder
 
@@ -54,18 +54,28 @@ class CandidateRanker:
             raise ValueError("Either job_description or job_file_path required")
 
         # Parse job description with LLM
-        self.job_parser = LLMJobParser()
+        self.job_parser = JobDescriptionParser()
         self.parsed_job = self.job_parser.parse(job_description)
 
+        # Extract requirements in the format scorer expects
+        job_requirements = self.job_parser.extract_requirements(job_description)
+
         # Initialize scorer
-        self.scorer = CandidateScorer(self.parsed_job)
+        self.scorer = CandidateScorer(job_requirements)
 
         # LLM clients
-        if provider == "groq":
+        # Use OpenAI as fallback since Groq might not be installed
+        try:
+            from .llm import GroqClient
+            groq_available = True
+        except ImportError:
+            groq_available = False
+
+        if provider == "groq" and groq_available:
             self.fast_client = GroqClient()
-            self.quality_client = GroqClient(model="llama3-70b-8192")
+            self.quality_client = GroqClient(model="llama-3.3-70b-versatile")
         else:
-            self.fast_client = OpenAIClient(model="gpt-4-turbo")
+            self.fast_client = OpenAIClient()
             self.quality_client = OpenAIClient()
 
     def rank_candidates(
@@ -127,8 +137,24 @@ class CandidateRanker:
 
         The LLM considers deeper factors than the initial scoring.
         """
-        # Prepare candidates for LLM
-        candidates_json = json.dumps(candidates[:20], default=str, indent=2)
+        # Prepare candidates for LLM - only include essential info to stay under rate limits
+        # Limit to 5 candidates to stay under Groq's 12K TPM limit
+        minimal_candidates = []
+        for c in candidates[:5]:
+            minimal_candidates.append({
+                "candidate_id": c["candidate_id"],
+                "score": c["total_score"],
+                "scores": {
+                    "skill_match": c.get("scores", {}).get("skill_match", 0),
+                    "behavioral": c.get("scores", {}).get("behavioral", 0),
+                    "experience": c.get("scores", {}).get("experience", 0),
+                    "cultural_fit": c.get("scores", {}).get("cultural_fit", 0),
+                    "availability": c.get("scores", {}).get("availability", 0),
+                },
+                "reasoning": c.get("reasoning", ""),
+            })
+
+        candidates_json = json.dumps(minimal_candidates, default=str, indent=2)
 
         prompt = PROMPT_TEMPLATES["rerank_candidates"].format(
             role_title=self.parsed_job.get("role_title", "this role"),
@@ -139,7 +165,18 @@ class CandidateRanker:
 
         try:
             result = json.loads(response.text)
-            return result.get("ranked_candidates", [])
+            ranked_candidates = result.get("ranked_candidates", [])
+
+            # Normalize field names if LLM uses different names
+            normalized = []
+            for c in ranked_candidates:
+                normalized.append({
+                    "candidate_id": c.get("candidate_id", ""),
+                    "rank": c.get("new_rank", c.get("rank", 0)),
+                    "score": c.get("score", 0),
+                    "reasoning": c.get("reason", c.get("reasoning", "")),
+                })
+            return normalized
         except json.JSONDecodeError:
             # Fallback to simple ranking if LLM parsing fails
             ranked = []
