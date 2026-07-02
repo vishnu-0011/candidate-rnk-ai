@@ -1,0 +1,58 @@
+Job Description: Senior AI Engineer — Founding Team
+Company: Redrob AI (Series A AI-native talent intelligence platform)
+Location: Pune/Noida, India (Hybrid — flexible cadence) | Open to relocation candidates from Tier-1 Indian cities
+Employment Type: Full-time
+Experience Required: 5–9 years (see "what we mean by this" below)
+
+Let's be honest about this role
+We're going to write this JD differently from most. We're a Series A company that just raised our round and we're building a new AI Engineering org from scratch. This is the kind of role where the JD changes every six months because the company changes every six months. So instead of pretending we have a fixed checklist, we're going to tell you what we actually need and what we've gotten wrong before.
+
+If you've spent your career at Google or Meta and you want a well-scoped role with a defined ladder, this isn't it.
+
+If you've spent your career bouncing between early-stage startups and you want to "just code" without having to think about product or recruiter workflows or eval frameworks, this also isn't it.
+
+We need someone who is simultaneously comfortable with two things that sound contradictory:
+- Deep technical depth in modern ML systems — embeddings, retrieval, ranking, LLMs, fine-tuning.
+- Scrappy product-engineering attitude — willing to ship a working ranker in a week even if the underlying ML is "obviously suboptimal," because we need to learn from real users before we know what to actually optimize for.
+
+What you'd actually be doing
+The high-level mandate: own the intelligence layer of Redrob's product. That means the ranking, retrieval, and matching systems that decide what recruiters see when they search for candidates and what candidates see when they search for roles.
+
+In practical terms, your first 90 days will probably look like:
+Weeks 1-3: Audit what we currently have (it's mostly BM25 + rule-based scoring, working but not great). Identify the 3-4 highest-leverage things to fix.
+Weeks 4-8: Ship a v2 ranking system that demonstrably improves recruiter-engagement metrics. This will involve embeddings, hybrid retrieval, and probably some LLM-based re-ranking, but the architecture is your call.
+Weeks 9-12: Set up the evaluation infrastructure — offline benchmarks, online A/B testing, recruiter-feedback loops — so we can keep improving without flying blind.
+
+The skills inventory (please read carefully)
+Most JDs list 20 skills and you're supposed to have all of them. We're going to do this differently.
+
+Things you absolutely need:
+- Production experience with embeddings-based retrieval systems (sentence-transformers, OpenAI embeddings, BGE, E5, or similar) deployed to real users
+- Production experience with vector databases or hybrid search infrastructure (Pinecone, Weaviate, Qdrant, Milvus, OpenSearch, Elasticsearch, FAISS, or something similar)
+- Strong Python. Yes really, we care about code quality.
+- Hands-on experience designing evaluation frameworks for ranking systems (NDCG, MRR, MAP, offline-to-online correlation, A/B test interpretation)
+
+Things we'd like you to have but won't reject you for:
+- LLM fine-tuning experience (LoRA, QLoRA, PEFT)
+- Experience with learning-to-rank models (XGBoost-based or neural)
+- Prior exposure to HR-tech, recruiting tech, or marketplace products
+- Background in distributed systems or large-scale inference optimization
+- Open-source contributions in the AI/ML space
+
+Things we explicitly do NOT want:
+- Title-chasers
+- Framework enthusiasts (LangChain tutorials only)
+- People who have only worked at consulting firms
+- People whose primary expertise is computer vision, speech, or robotics without significant NLP/IR exposure
+
+The vibe check:
+We genuinely believe culture-fit matters more at this stage than skills-fit. Skills are teachable; the rest mostly isn't.
+
+We work async-first and write a lot. If you find writing painful, you'll find this role painful.
+We disagree openly and decide quickly. If you find that style abrasive, you'll find this role abrasive.
+We move fast and break things, with the caveat that "things" are usually our internal assumptions, not user-facing systems.
+
+Final note for the participants of the Redrob hackathon:
+The "right answer" to this JD is not "find candidates whose skills section contains the most AI keywords." That's a trap we've explicitly built into the dataset.
+
+The right answer involves reasoning about the gap between what the JD says and what the JD means. A Tier 5 candidate may not use the words "RAG" or "Pinecone" in their profile, but if their career history shows they built a recommendation system at a product company, they're a fit.
