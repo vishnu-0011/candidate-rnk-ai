@@ -1,0 +1,20 @@
+# Redrobe AI Candidate Ranking System Dependencies
+
+# Core ML/Data
+numpy>=1.24.0
+scikit-learn>=1.3.0
+
+# LLM Integration
+openai>=1.0.0
+tiktoken>=0.5.0
+
+# Vector Search
+# faiss-cpu>=1.7.0  # Uncomment if using FAISS for vector search
+
+# Data Processing
+pandas>=2.0.0
+python-dotenv>=1.0.0
+
+# Utilities
+pydantic>=2.0.0
+tqdm>=4.65.0
